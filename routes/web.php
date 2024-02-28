@@ -2,9 +2,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\agencecontroler;
 use App\Http\Controllers\clientcontroler;
-use App\Http\Controllers\OperationController;
-
 use App\Http\Controllers\comptecontroler;
+
+use App\Http\Controllers\FactureController;
+use App\Http\Controllers\OperationController;
 use App\Http\Controllers\gestionairecontroler;
 
 /*
@@ -48,3 +49,10 @@ Route::post('/operat/withdraw', [OperationController::class, 'withdraw'])->name(
 Route::get('/operat/transfer', [OperationController::class, 'showTransferForm'])->name('operation.showTransferForm');
 Route::post('/operat/transfer', [OperationController::class, 'transfer'])->name('operation.transfer');
 
+Route::prefix('factures')->group(function () {
+    Route::get('/', [FactureController::class, 'index'])->name('facture.index');
+    Route::get('/{id}/payer', [FactureController::class, 'showPayBillForm'])->name('facture.payer');
+    Route::post('/{id}/payer', [FactureController::class, 'payerFacture'])->name('facture.payer.store');
+});
+Route::get('/factures/create', [FactureController::class, 'create'])->name('facture.create');
+Route::post('/factures', [FactureController::class, 'store'])->name('facture.store');

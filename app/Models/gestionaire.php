@@ -10,6 +10,7 @@ class gestionaire extends Model
     use HasFactory;
     protected $fillable = [
         'gestionairename',
+        'agence_id',
         'gestionairepost'
     ];
     public function agence(): HasMany

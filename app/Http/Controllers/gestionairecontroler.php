@@ -79,8 +79,9 @@ class gestionairecontroler extends Controller
      */
     public function edit($id)
     {
+        $agences = agence::all();
         $gestionaires = gestionaire::where('id',$id)->first();
-        return view('gestionaire.edit',compact('gestionaires'));
+        return view('gestionaire.edit',compact('gestionaires','agences'));
     }
 
     /**
@@ -93,10 +94,11 @@ class gestionairecontroler extends Controller
     public function update(Request $request,$id)
     {
 
-        $request->validate([
+       /* $request->validate([
             'gestionairename' => 'required',
             'gestionairepost' => 'required',
-        ]);
+            'agence_id' => 'required',
+        ]);*/
         $gestionaires = gestionaire::where('id',$id)->first();
         $gestionaires->update($request->all());
 

@@ -90,46 +90,47 @@ public function showWithdrawForm()
         return redirect()->route('operation.index', $operation->id)->with('success', 'Opération mise à jour avec succès.');
     }
     public function deposit(Request $request)
-    {
-        // Valider les données de la requête
-        $request->validate([
-            'compte_id' => 'required|exists:comptes,id',
-            'montant' => 'required|numeric|min:0',
-        ]);
+    {// Valider les données de la requête
+    $request->validate([
+        'compte_id' => 'required|exists:comptes,id',
+        'montant' => 'required|numeric|min:0',
+    ]);
 
-        // Créer une nouvelle opération de dépôt
-        Operation::create([
-            'compte_id' => $request->input('compte_id'),
-            'operationlibelle' => 'depot',
-            'operation_date' => now(),
-            'montant_credit' => $request->input('montant'),
-        ]);
+    // Récupérer les informations sur le dépôt
+    $compte_id = $request->input('compte_id');
+    $montant = $request->input('montant');
 
-        // Mettre à jour le solde du compte
-        $compte_id=$request->input('compte_id');
-        $compte = Compte::find($compte_id)->first();
-        $depot=$request->input('montant');
-        $montant=$compte->solde ;
-        $newsolde=$depot+$montant;
-        $compte->solde = $newsolde;
-        $compte->save();
+    // Créer une nouvelle opération de dépôt
+    Operation::create([
+        'compte_id' => $compte_id,
+        'operationlibelle' => 'depot',
+        'operation_date' => now(),
+        'montant_credit' => $montant,
+    ]);
 
-        // Rediriger vers la page d'accueil avec un message de succès
-        return redirect()->route('operation.index')->with('success', 'Dépôt effectué avec succès.');
-    }
+    // Mettre à jour le solde du compte
+    $compte = Compte::find($compte_id);
+    $compte->solde += $montant;
+    $compte->save();
+
+    // Rediriger vers la page d'accueil avec un message de succès
+    return redirect()->route('operation.index')->with('success', 'Dépôt effectué avec succès.');
+}
 
     public function withdraw(Request $request)
-    {
-        // Valider les données de la requête
+    { // Valider les données de la requête
         $request->validate([
             'compte_id' => 'required|exists:comptes,id',
             'montant' => 'required|numeric|min:0',
         ]);
-        $compte_id=$request->input('compte_id');
+
+        // Récupérer les informations sur le retrait
+        $compte_id = $request->input('compte_id');
+        $montant = $request->input('montant');
+
         // Vérifier si le solde du compte est suffisant pour le retrait
-        $compte = Compte::find($compte_id)->first();
-        $retrait=$request->input('montant');
-        if ($compte->solde < $retrait ) {
+        $compte = Compte::find($compte_id);
+        if ($compte->solde < $montant) {
             return back()->with('error', 'Solde insuffisant pour effectuer le retrait.');
         }
 
@@ -138,13 +139,11 @@ public function showWithdrawForm()
             'compte_id' => $compte_id,
             'operationlibelle' => 'Retrait',
             'operation_date' => now(),
-            'montant_debit' => $retrait,
+            'montant_debit' => $montant,
         ]);
 
         // Mettre à jour le solde du compte
-        $montant=$compte->solde ;
-        $newsolde=$montant-$retrait;
-        $compte->solde = $newsolde;
+        $compte->solde -= $montant;
         $compte->save();
 
         // Rediriger vers la page d'accueil avec un message de succès
@@ -153,17 +152,19 @@ public function showWithdrawForm()
 
     public function transfer(Request $request)
     {
-        // Valider les données de la requête
         $request->validate([
             'source_compte_id' => 'required|exists:comptes,id',
             'destination_compte_id' => 'required|exists:comptes,id',
             'montant' => 'required|numeric|min:0',
         ]);
 
+        // Récupérer les informations sur le transfert
+        $source_id = $request->input('source_compte_id');
+        $destination_id = $request->input('destination_compte_id');
+        $montant = $request->input('montant');
+
         // Vérifier si le solde du compte source est suffisant pour le transfert
-        $source_id=$request->input('source_compte_id');
-        $sourceCompte = Compte::find($source_id)->first();
-        $montant=$request->input('montant');
+        $sourceCompte = Compte::find($source_id);
         if ($sourceCompte->solde < $montant) {
             return back()->with('error', 'Solde insuffisant pour effectuer le transfert.');
         }
@@ -175,7 +176,7 @@ public function showWithdrawForm()
             'operation_date' => now(),
             'montant_debit' => $montant,
         ]);
-       $destination_id= $request->input('destination_compte_id');
+
         // Créer une nouvelle opération de transfert entrant
         Operation::create([
             'compte_id' => $destination_id,
@@ -185,22 +186,41 @@ public function showWithdrawForm()
         ]);
 
         // Mettre à jour les soldes des comptes source et destination
-        $sourcesolde=$sourceCompte->solde;
-        $withdraw=$sourcesolde-$montant;
-        $sourceCompte->solde = $withdraw;
-
-        $destinationCompte = Compte::where('id',$destination_id)->first();
-        $solde=$destinationCompte->solde;
-        $newsolde= $solde+$montant;
-        $destinationCompte->solde = $newsolde;
-        $destinationCompte->save();
-        $sourceCompte->save();
-
+        $sourceCompte->decrement('solde', $montant);
+        $destinationCompte = Compte::find($destination_id);
+        $destinationCompte->increment('solde', $montant);
 
         // Rediriger vers la page d'accueil avec un message de succès
         return redirect()->route('operation.index')->with('success', 'Transfert effectué avec succès.');
-    }
 }
+/*public function payBill(Request $request)
+{
+    // Valider les données de la requête
+    $request->validate([
+        'compte_id' => 'required|exists:comptes,id',
+        'montant' => 'required|numeric|min:0',
+        'operationlibelle' => 'required|string',
+        'operation_date' => 'required|date',
+    ]);
+
+    // Créer une nouvelle opération pour le paiement de la facture
+    Operation::create([
+        'compte_id' => $request->input('compte_id'),
+        'operationlibelle' => $request->input('operationlibelle'),
+        'operation_date' => $request->input('operation_date'),
+        'montant_debit' => $request->input('montant'),
+    ]);
+
+    // Mettre à jour le solde du compte
+    $compte = Compte::findOrFail($request->input('compte_id'));
+    $compte->solde -= $request->input('montant');
+    $compte->save();
+
+    // Rediriger avec un message de succès
+    return redirect()->route('operation.index')->with('success', 'Facture payée avec succès.');
+}*/
+}
+
 
 
 

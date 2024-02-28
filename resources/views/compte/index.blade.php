@@ -4,6 +4,12 @@
 <div class="container mt-5">
     <h2>Liste des comptes</h2>
     <a href="{{ route('compte.create') }}" class="btn btn-primary mb-3">Créer un compte</a>
+
+    @if ($message = Session::get('success'))
+    <div class="alert alert-success">
+        <p>{{ $message }}</p>
+    </div>
+@endif
     <table class="table">
         <thead>
             <tr>

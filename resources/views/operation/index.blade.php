@@ -1,6 +1,21 @@
 @extends('operation.layout')
 
 @section('content')
+
+@if ($message = Session::get('success'))
+<div class="alert alert-success">
+    <p>{{ $message }}</p>
+</div>
+@endif
+
+<div class="pull-right">
+
+    <a class="btn btn-primary btn-lg btn-block" href="{{ route('operation.deposit') }}"> DEPOT</a><br>
+    <a class="btn btn-primary btn-lg btn-block" href="{{ route('operation.withdraw') }}"> retrait</a><br>
+    <a class="btn btn-primary btn-lg btn-block" href="{{ route('operation.transfer') }}"> transfer</a><br>
+    <a class="btn btn-primary btn-lg btn-block" href="{{ route('facture.index') }}"> paybill</a><br>
+</div>
+
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">

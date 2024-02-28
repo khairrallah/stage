@@ -33,11 +33,17 @@
                     <strong>Name:</strong>
                     <input type="text" name="gestionairename" value="{{ $gestionaires->gestionairename }}" class="form-control" placeholder="Name">
                 </div>
-                <div class="form-group">
-                    <strong>Name:</strong>
-                    <input type="list" name="agence" value="{{ $gestionaires->agence_id }}" class="form-control" placeholder="Name">
-                </div>
-            </div>
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12 col-md-12">
+                        <div class="form-group">
+                            <strong>agence id:</strong>
+                            <select name="agence_id" class="form-control">
+                                @foreach($agences as $agence)
+                                    <option value="{{ $agence->id }}">{{ $agence->agencename }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
             <div class="col-xs-12 col-sm-12 col-md-12">
                 <div class="form-group">
                     <strong>gestionaire post:</strong>
